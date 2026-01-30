@@ -90,12 +90,10 @@
                             <line x1="12" y1="16" x2="12" y2="12"></line>
                             <line x1="12" y1="8" x2="12.01" y2="8"></line>
                         </svg>
-                        Demo Credentials
+                        Admin Credentials
                     </div>
                     <div class="demo-info">
-                        <p><strong>Username:</strong> <code onclick="copyToClipboard('admin')">admin</code></p>
-                        <p><strong>Password:</strong> <code onclick="copyToClipboard('123456')">123456</code></p>
-                        <small>Click to copy</small>
+                        <p><small>No demo credentials are provided. Please create secure admin credentials using the settings or initial setup.</small></p>
                     </div>
                 </div>
             </div>
@@ -111,6 +109,19 @@
                     <span id="alertIcon"></span>
                     <span id="alertText"></span>
                     <button class="alert-close" onclick="hideAlert()">&times;</button>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="settings-panel">
+                <h2>⚙️ Settings</h2>
+                <div class="setting-item">
+                    <label for="customDomain">Your Domain/Website URL:</label>
+                    <div class="domain-input-group">
+                        <input type="url" id="customDomain" placeholder="https://example.com" value="">
+                        <button class="btn btn-primary" onclick="saveCustomDomain()">Save Domain</button>
+                    </div>
+                    <small>This domain will be used in shareable product links. Leave empty to use current domain.</small>
                 </div>
             </div>
 
@@ -221,9 +232,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="affiliateLink">Amazon Affiliate Link *</label>
-                            <input type="url" id="affiliateLink" placeholder="https://www.amazon.com/dp/B08N5WRWNW?tag=youraffiliateid" required>
-                            <small>Enter your Amazon affiliate link. Make sure to include your affiliate tag in the URL.</small>
+                            <label for="affiliateLink">Product Link *</label>
+                            <input type="url" id="affiliateLink" placeholder="https://example.com/product" required>
+                            <small>Any website link (Amazon, eBay, Daraz, etc.)</small>
                             <button type="button" class="btn-test-link" onclick="testAffiliateLink()">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
@@ -277,6 +288,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="js/protection.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/admin.js"></script>
 
@@ -411,10 +423,21 @@
         }
         
         function deleteProduct(id) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                StorageManager.deleteProduct(id);
-                loadProducts();
-                alert('Product deleted successfully!');
+            const product = StorageManager.getProduct(id);
+            if (!product) {
+                alert('Product not found');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete "${product.title}"?`)) {
+                try {
+                    StorageManager.deleteProduct(id);
+                    loadProducts();
+                    alert('Product deleted successfully!');
+                } catch (error) {
+                    alert('Error deleting product');
+                    console.error('Delete error:', error);
+                }
             }
         }
         

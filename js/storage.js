@@ -8,12 +8,18 @@ const StorageManager = {
 
   // Initialize default admin credentials and settings
   initAdmin() {
-    if (!localStorage.getItem(this.ADMIN_KEY)) {
-      localStorage.setItem(this.ADMIN_KEY, JSON.stringify({
-        username: 'admin',
-        password: '123456',
-        createdAt: new Date().toISOString(),
-        lastLogin: null
+    // Do not create or force demo admin credentials here.
+    // Leave admin unset so the project owner can create secure credentials via the UI.
+
+    // Initialize default settings
+    if (!localStorage.getItem(this.SETTINGS_KEY)) {
+      localStorage.setItem(this.SETTINGS_KEY, JSON.stringify({
+        siteName: 'Dreampins Store',
+        theme: 'light',
+        productsPerPage: 12,
+        enableAnalytics: true,
+        autoSave: true,
+        notifications: true
       }));
     }
 
@@ -106,17 +112,13 @@ const StorageManager = {
 
   // Get admin credentials
   getAdmin() {
-    return JSON.parse(localStorage.getItem(this.ADMIN_KEY)) || {
-      username: 'admin',
-      password: '123456',
-      createdAt: new Date().toISOString(),
-      lastLogin: null
-    };
+    const item = localStorage.getItem(this.ADMIN_KEY);
+    return item ? JSON.parse(item) : null;
   },
 
   // Update admin credentials
   updateAdmin(adminData) {
-    const currentAdmin = this.getAdmin();
+    const currentAdmin = this.getAdmin() || {};
     const updatedAdmin = { ...currentAdmin, ...adminData };
     localStorage.setItem(this.ADMIN_KEY, JSON.stringify(updatedAdmin));
     return updatedAdmin;
@@ -125,13 +127,12 @@ const StorageManager = {
   // Verify admin login
   verifyAdmin(username, password) {
     const admin = this.getAdmin();
+    if (!admin || !admin.username || !admin.password) return false;
+
     const isValid = admin.username === username && admin.password === password;
-    
     if (isValid) {
-      // Update last login time
       this.updateAdmin({ lastLogin: new Date().toISOString() });
     }
-    
     return isValid;
   },
 

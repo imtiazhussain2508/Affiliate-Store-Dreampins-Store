@@ -20,6 +20,7 @@ class AdminPanel {
     this.setupFormValidation();
     this.loadProducts();
     this.updateStats();
+    this.loadCustomDomain();
   }
 
   // Setup event listeners
@@ -928,12 +929,25 @@ class AdminPanel {
       return false;
     }
   }
+
+  // Save custom domain
+  saveCustomDomain(domain) {
+    localStorage.setItem('customDomain', domain);
+    this.showAlert('Domain saved successfully! Product links will use this domain.', 'success');
+  }
+
+  // Load custom domain
+  loadCustomDomain() {
+    const domainInput = document.getElementById('customDomain');
+    if (domainInput) {
+      const saved = localStorage.getItem('customDomain') || '';
+      domainInput.value = saved;
+    }
+  }
 }
 
 // Global functions for HTML onclick events
-let adminPanel;
-
-function handleImageUpload(input) {
+let adminPanel;function handleImageUpload(input) {
   adminPanel.handleImageUpload(input);
 }
 
@@ -963,6 +977,24 @@ function cancelEdit() {
 
 function searchAdminProducts() {
   adminPanel.searchAdminProducts();
+}
+
+function saveCustomDomain() {
+  const domainInput = document.getElementById('customDomain');
+  const domain = domainInput.value.trim();
+  
+  if (!domain) {
+    adminPanel.showAlert('Please enter a domain or URL', 'error');
+    return;
+  }
+  
+  // Validate URL format
+  try {
+    new URL(domain);
+    adminPanel.saveCustomDomain(domain);
+  } catch (e) {
+    adminPanel.showAlert('Please enter a valid URL (e.g., https://example.com)', 'error');
+  }
 }
 
 function filterAdminProducts() {

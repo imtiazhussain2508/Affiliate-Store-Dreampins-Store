@@ -11,6 +11,7 @@ class AffiliateStore {
     this.currentSort = 'newest';
     this.searchTerm = '';
     this.isLoading = false;
+    this.customDomain = this.loadCustomDomain();
     
     this.init();
   }
@@ -21,6 +22,7 @@ class AffiliateStore {
     this.initializeTheme();
     this.setupBackToTop();
     this.updateStats();
+    this.setupMobileMenuListeners();
   }
 
   // Load and display products
@@ -144,8 +146,8 @@ class AffiliateStore {
             <button class="btn-buy" onclick="affiliateStore.openAffiliateLink('${this.escapeHtml(product.affiliateLink)}', '${this.escapeHtml(product.title)}')">
               Buy Now
             </button>
-            <button class="btn-share" onclick="affiliateStore.shareProduct('${this.escapeHtml(product.title)}', '${this.escapeHtml(product.affiliateLink)}')" title="Share product">
-              📤
+            <button class="btn-share" onclick="affiliateStore.copyProductLink('${product.id}', '${this.escapeHtml(product.title)}')" title="Copy shareable link">
+              🔗
             </button>
             <button class="btn-pinterest" onclick="affiliateStore.shareToPinterest('${this.escapeHtml(product.title)}', '${this.escapeHtml(product.affiliateLink)}', '${this.escapeHtml(product.imageUrl)}')" title="Share to Pinterest">
               📌
@@ -533,7 +535,35 @@ class AffiliateStore {
   // Mobile menu toggle
   toggleMobileMenu() {
     const navLinks = document.querySelector('.nav-links');
+    const menuBtn = document.querySelector('.mobile-menu-toggle');
+    
+    // Toggle menu visibility
     navLinks.classList.toggle('mobile-open');
+    menuBtn.classList.toggle('active');
+  }
+  
+  // Setup mobile menu event listeners
+  setupMobileMenuListeners() {
+    const navLinks = document.querySelector('.nav-links');
+    const menuBtn = document.querySelector('.mobile-menu-toggle');
+    
+    // Close menu when a link is clicked
+    const links = navLinks.querySelectorAll('a');
+    links.forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('mobile-open');
+        menuBtn.classList.remove('active');
+      });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const nav = document.querySelector('nav');
+      if (!nav.contains(e.target) && navLinks.classList.contains('mobile-open')) {
+        navLinks.classList.remove('mobile-open');
+        menuBtn.classList.remove('active');
+      }
+    });
   }
 
   // Utility functions
@@ -723,6 +753,42 @@ class AffiliateStore {
       }
     };
     document.addEventListener('keydown', handleEscape);
+  }
+
+  // Load custom domain from localStorage
+  loadCustomDomain() {
+    return localStorage.getItem('customDomain') || window.location.origin;
+  }
+
+  // Save custom domain to localStorage
+  saveCustomDomain(domain) {
+    localStorage.setItem('customDomain', domain);
+    this.customDomain = domain;
+    this.showToast('Domain updated successfully!', 'success');
+  }
+
+  // Generate product share link
+  generateProductLink(productId, productTitle) {
+    const baseUrl = this.customDomain;
+    const productSlug = productTitle.toLowerCase().replace(/\s+/g, '-');
+    return `${baseUrl}?product=${productId}&name=${productSlug}`;
+  }
+
+  // Copy product link to clipboard
+  copyProductLink(productId, productTitle) {
+    const link = this.generateProductLink(productId, productTitle);
+    this.fallbackCopyToClipboard(link);
+    this.showToast('Product link copied! Share it anywhere! 🔗', 'success');
+  }
+
+  // Fallback copy to clipboard
+  fallbackCopyToClipboard(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
   }
 }
 
